@@ -1,0 +1,47 @@
+* nftools v. 2.0-rc4 (11.4.2007)
+  - method @pmpdf/plot incorporated allowing to plot point-mass pdfs
+  - small changes to the internal and public api of nfFunction and 
+    nfSymfunction
+     - new internal atribute of the function classes mappingDimension
+       and new public property dimension
+     - nfSymFunction has new public properties firstDerivatives and 
+       secondDerivatives containing string representation of first
+       and second partial derivatives
+  - all function classes (iincluding those in examples) has implemented
+    method nfsecpad for evaluation of second partial derivatives
+  - the Second Order Filter is again part of the toolbox
+  - modified api of the Gaussian Sum Filter (gsm) in order to be 
+    unambiquous
+  - it is possible to create the instance of gsm class without specifying
+    the maximal number of filtering pdf mixture terms (i.e. the number
+    of terms could grow unrestricted)
+  
+* nftools v. 2.0-rc3a (23.1.2007)
+ - fixed problem with case sensitivity in MATLAB 6.5.x on Windows platform
+ 
+* nftools v. 2.0-rc3 (21.1.2007)
+ - corrected last minute bug in the nfdiff methods where the variable 
+   numberOfVariables was not set
+   
+* nftools v. 2.0-rc2 (19.1.2007)
+ - corrected severe bug in @nfSymFunction/nfdiff method resulting 
+   dimension missmatch error
+ - the rc1 contained wrong/outdated versions of the Particle filter.
+   The class apf was removed and class pf was changed to propper version
+ - incorporated rewritten Point mass filter
+ - class @nfExampleFunction implemented different system that didn't 
+   correspond to nfSymFunction('[x1^2*x2+w1;x2+w2]','','x1,x2','w1,w2')
+ - corrected the @nfSymFunction/nfsecpad method for evaluating the second
+   partial derivatives
+ - the @estimator/estimate method uses waitbar to give user information
+   about the progress of estimation process
+   
+* nftools v. 2.0-rc1 (15.12.2006)
+ - first public release candidate
+ - it is now possible to create user defined classes decribing
+   multivariate functions as child classes of the nfFunction
+   (removes the strong dependency on MATLAB Symbolic Toolbox)
+ - new simulation method that make it possible to specify 
+   pregenerated state and measurement noises
+ - new filters: DD1, DD2 and UKF
+ - Point Mass filter and Second order filter (they undergo rewrite)

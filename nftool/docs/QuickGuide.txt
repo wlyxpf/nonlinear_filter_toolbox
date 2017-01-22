@@ -1,0 +1,192 @@
+Usage of the Nonlinear Filtering Toolbox
+========================================
+
+1. Setting up the estimation experiment
+---------------------------------------
+
+1.1 Description of the system 
+
+The system is generaly described by the following difference equtions
+
+x_{k+1} = f(x_k,u_k,w_k)                          (1)
+y_k     = h(x_k,v_k)                              (2)
+
+where x_k denotes the state, u_k the control input and w_k, v_k the 
+state and measurement noises.
+
+1.1.1 Description of the vector mappings
+
+It is thus necessary to define the multivariate vector mapping f(.) and 
+h(.). This can be done using child classes of the class nfFunction. 
+The toolbox provides two such classes: nfSymFunction and nfLinFunction.
+
+Using the first one the vector mappings are defined as strings because 
+it  uses the MATLAB Symbolic Toolbox (e.g. for determining the 
+derivatives). Let's suppose that it is necesary to create instance of 
+nfSymFunction class describing vector mapping 
+
+              | 0.96*x1 + 0.08*x1*x2 + w1 |
+f(x_k,w_k) =  |                           | ,     (3)
+              | 1.08*x2 - 0.08*x1*x2 + w2 |
+
+            | x1 |                        | w1 |
+where x_k = |    | is the state and w_k = |    | the state noise.
+            | x2 |                        | w2 |
+
+This vector mapping is described using object of class nfSymFunction in 
+the following manner
+
+f = nfSymFunction('[0.96*x1+0.08*x1*x2+w1;1.08*x2-0.08*x1*x2+w2]',...
+                  '','x1,x2','w1,w2');
+The first parameter is the string representation of the relation (3). 
+The second parameter lists symbolic variables denoting the control 
+input (in this case there is no such input). The third and fourth 
+parameter are listing symbolic variables denoting the state and state 
+noise variables, respectively.
+
+The secong child class of the nfFunction, the class nfLinFunction is 
+suitable for description of the linear vector mappings. For example to 
+describe the following linear function 
+
+          | x1 |
+h = [4 1]*|    | + v_k                             (4)
+          | x2 |  
+
+the user can use following command
+
+h = nfLinFunction([4 1],[],1,'','x1,x2','v')
+
+The names of symbolic variables are specified only in case the user will 
+use this instance of the nfLinFunction together with some instance of 
+the nfSymFunction for the decription of the system defined by relations 
+(1)-(2). If those parameters are omitted then there are internaly 
+created substitutionaly names ('input' 'state' 'noise').
+
+The last possibility how to describe the vector mapping is to create 
+instance of user defined child class of the nfFunction class. For 
+inspiration on how to write such a child class take a look in the 
+examples directory. The classes nfPredatorPreyModel and 
+nfPredatorPreyModel2 can be seen as templates for typical user 
+nfFunction child class. The first one uses generic names for description 
+of quantities (i.e. 'input, 'state' and  'noise'). The second one defines 
+the names of elements of the quantities (e.g. 'x1','x2' ...) and is thus 
+suitable when it is necessary to compose the system using user defined 
+function and the function described usin nfSymFunction.
+
+1.1.2. Description of the probability density functions
+
+After description of the vector mappings it is necessary to describe the 
+probability density functions (pdf's) of the state noise w_k, the 
+measurement noise v_k, initial state x_0 and the apriori pdf 
+p(x_0|y_{-1}). The user can use one of the child classes of the class 
+general_pdf. If the use wants e.g. describe the state noise pdf given as
+
+           | 0.2 | | 0.1  0  |
+p(w_k) ~ N(|     |,|         |)
+           | -2  | |  0  0.1 |
+
+he can use class gpdf in the following way
+
+pwk = gpdf([0.2;-2],diag([0.1,0.1]));
+
+
+1.2 Creation of system class instance and simulation of it trajectory
+
+Let's suppose that the user prepared all the necesary object, describing 
+the vector mapping (3) and (4) and pdf's p(w_k), p(v_k) and p(x_0). It 
+is now possible to create instance of the system class
+
+system = nlga(f,h,pwk,pvk,px0);
+
+The class used in this case is nlga designated for description of 
+NonLinear system with Gaussian Additive noises.
+
+For the estimation experiment the user needs to simulate the system 
+trajectory. For this purpose the system classes provide method simulate. 
+There are three basig posibilitis how to simulate the trajectory. It 
+will be shown on example that simulates 10 time steps of the above 
+mentioned system
+
+a) to use the simulate method without any input data
+
+   N=10;
+   z = zeros(1,10);
+   x = zeros(2,10);
+   for i = 1:10
+	[z(:,i),x(:,i),system] = simulate(system);
+   end;
+
+In this case the method simulate can evaluate only one time step of the 
+trajectory. It stores it in the variables x and z. The output parameter 
+system is necessary in this case because it is also necessary to store 
+the changed object system.
+
+b) to use control input
+
+Although the system is autonomous it is possible to use arbitrary input 
+(it will not be used for the simulation) in order to specify the length 
+of the time hozizon. In this case it is sufficient either to use 
+commands
+
+   u = zeros(1,10);
+   [z,x] = simulate(system,u)
+
+or the commands
+
+   u = zeros(1,10);
+   [z,x] = simulate(system,'input',u)
+
+The optional third output parameter system is omitted in this case. If 
+the user intends to continue in the simulation at later time it should 
+be specified.
+
+c) to specify pregenerated sequvence of random noise(s)
+
+In not specified the simulate method generates the state and measurement 
+noises itself. However, it is possible to pass pregenerated noises to 
+the method e.g.
+
+   w = sampleset(pwk,10);
+   v = sampleset(pvk,10);
+
+   [z,x] = simulate(system,'state noise',w,'measument noise')
+
+It is not necessary to pass both noises. The noise that would not be 
+passed is generetaed by the simulate method. Also the pairs (quantity 
+name and values) is arbitrary.
+
+1.3. The estimation experiment
+
+Now it is possible to proceed with the estimation experiment. The user 
+chooses appropriate filter and creates is class instance. Following 
+example shows how to create Extended Kalman filter for the two step 
+prediction problem
+
+estimator = extkalman(system,2,prior_x0);
+
+The class constructor has three input parameter (two mandatory and one 
+optional. The first parameter specifies the systemof which the state 
+will be estimated. The second parameter specifies the type of the 
+problem. If this parameter is equal to zero the estimator will determine 
+the filtering pdf. In case that this parameter is less than zero the 
+sought pdf will be the smoothing pdf. In this case the predictive pdf is 
+sought. The last, optional, parameter describes apriory pdf of the 
+state. If omitted this pdf is set as equal to the pdf of initial state 
+taken from the system object. 
+
+The estimation is afterwords caried on issuing the following command
+
+[estimated_pdfs,estimator] = estimate(estimator,z,[]);
+
+The output parameter estimated_pdfs holds cell array containing the 
+two step predictive pdf's in this case. The second output parameter 
+stores the updated estimator. The input parameter are the estimator 
+object, the simulated measurement a the last denoted empty array of 
+control inputs (they unnecessary because the system is in this case 
+autonomous).
+
+2. The creation of new estimator
+--------------------------------
+
+(---- TO BE WRITTEN ---)
+

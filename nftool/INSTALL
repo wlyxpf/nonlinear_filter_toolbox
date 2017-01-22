@@ -1,0 +1,14 @@
+Instalation of the Nonlinear Filtering Toolbox
+==============================================
+
+o copy the folders into separate directory
+o add this directory including the subdirectories to the MATLAB path
+o try the examples in the examples directory
+o enjoy the toolbox :)
+
+---
+Notes: 
+o The Nonlinear Filtering Toolbox should work with MATLAB versions
+  6.5.x - 7.x.
+o In case you would like to use the nfSymFunction class you need 
+  the Symbolic Toolbox For MATLAB.

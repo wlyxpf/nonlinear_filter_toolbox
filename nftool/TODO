@@ -1,0 +1,18 @@
+o - task waiting for implementation
+w - work in progress
+x - done
+-----------------------------------------------------------
+
+x make it possible to pregenerate realization of all random 
+  variables and use it in simulations
+x review use of second partial derivative -> rewrite classes
+  describing functions
+o implement general framework for Gaussian sum methods that
+  would enable usage of various local filters
+o clean and optimize old code!
+o implement more numericaly stable algorithms
+x include new versions of Point mass filter and Second order filter
+w rewrite the handling of optional input paramters in constructor 
+  of filter classes. The optional parameters should be specified as
+  parameter name and parameter value pairs. This would allow more 
+  readable code.
